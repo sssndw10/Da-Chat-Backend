@@ -3,18 +3,7 @@ import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: 'guess',
-    },
-  ];
+  private readonly users: User[] = [];
 
   async findOne(username: string): Promise<User | undefined> {
     return this.users.find((user) => {
@@ -28,6 +17,8 @@ export class UsersService {
       userId: this.users.length + 1,
       username,
       password: encryptedPassword,
+      accessToken: null,
+      refreshToken: null,
     });
     return this.findOne(username);
   }

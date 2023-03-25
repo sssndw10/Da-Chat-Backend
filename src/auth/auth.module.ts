@@ -5,9 +5,9 @@ import { LocalStrategy } from './local.strategy';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './auth.constants';
-import { JwtStrategy } from './jwt.strategy';
+import { AccessTokenStrategy } from './jwt.strategy';
 import { UsersModule } from 'src/users/users.module';
-import { SignupStrategy } from './signup.strategy';
+import { RefreshTokenStrategy } from './jwt-refresh.strategy';
 
 @Module({
   imports: [
@@ -21,7 +21,12 @@ import { SignupStrategy } from './signup.strategy';
       },
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy, SignupStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    AccessTokenStrategy,
+    RefreshTokenStrategy,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}
