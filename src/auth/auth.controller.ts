@@ -23,7 +23,6 @@ export class AuthController {
 
   @Post('signup')
   async signup(@Body() user) {
-    console.log(user);
     return this.authService.signup(user.username, user.password);
   }
 
@@ -35,8 +34,9 @@ export class AuthController {
 
   @UseGuards(RefreshTokenGuard)
   @Get('refresh')
-  refresh(@Request() req) {
-    return this.authService.refreshAccessToken(
+  async refresh(@Request() req) {
+    console.log('refresh eeqpo');
+    return await this.authService.refreshAccessToken(
       req.user.username,
       req.user.refreshToken,
     );

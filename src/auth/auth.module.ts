@@ -8,6 +8,9 @@ import { jwtConstants } from './auth.constants';
 import { AccessTokenStrategy } from './jwt.strategy';
 import { UsersModule } from 'src/users/users.module';
 import { RefreshTokenStrategy } from './jwt-refresh.strategy';
+import { AccessTokenGuard } from './jwt-auth.guard';
+import { RefreshTokenGuard } from './jwt-refresh-auth.guard';
+import { LocalAuthGuard } from './local-auth.guard';
 
 @Module({
   imports: [

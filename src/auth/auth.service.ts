@@ -7,9 +7,10 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './auth.constants';
+import mongoose from 'mongoose';
 
 interface InputUser {
-  userId: number;
+  userId: any;
   username: string;
 }
 
@@ -21,14 +22,12 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, password: string) {
-    const user = await this.usersService.findOne(username);
+    const user = await this.usersService.getUserByName(username);
 
     if (!user) return undefined;
 
     if (await bcrypt.compare(password, user.password)) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
-      return result;
+      return user;
     }
   }
 
@@ -56,29 +55,31 @@ export class AuthService {
   }
 
   async signup(username: string, password: string) {
-    const foundUser = await this.validateUser(username, password);
+    const foundUser = await this.usersService.getUserByName(username);
 
     if (foundUser) {
       throw new BadRequestException('User Already Exists Try Logging In');
     }
 
-    const encryptedPassword = await bcrypt.hash(password, 11);
-    const user = await this.usersService.createOne(username, encryptedPassword);
+    const user = await this.usersService.createUser(username, password);
 
     return this.login({
-      userId: user.userId,
+      userId: user._id,
       username: user.username,
     });
   }
 
   async setTokens(username: string, accessToken: string, refreshToken: string) {
-    const user = await this.usersService.findOne(username);
-    user.refreshToken = refreshToken;
-    user.accessToken = accessToken;
+    await this.usersService.updateUserByName(username, {
+      $set: {
+        accessToken,
+        refreshToken,
+      },
+    });
   }
 
   async refreshAccessToken(username: string, refreshToken: string) {
-    const user = await this.usersService.findOne(username);
+    const user = await this.usersService.getUserByName(username);
 
     if (!user || !user.refreshToken)
       throw new ForbiddenException('No user or token found');
@@ -87,7 +88,7 @@ export class AuthService {
       throw new ForbiddenException('Token doesnt match');
 
     const accessToken = await this.jwtService.signAsync(
-      { username: user.username, sub: user.userId },
+      { username: user.username, sub: user._id },
       {
         secret: jwtConstants.secret,
         issuer: 'Ronaldo',
@@ -95,10 +96,16 @@ export class AuthService {
       },
     );
 
-    user.accessToken = accessToken;
+    user
+      .updateOne({
+        $set: {
+          accessToken,
+        },
+      })
+      .exec();
 
     return {
-      accessToken: accessToken,
+      accessToken,
     };
   }
 }
